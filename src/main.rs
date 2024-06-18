@@ -11,6 +11,22 @@ struct Ball_Parameters {
     attractions: Vec<Vec<f32>>,
 }
 
+fn random_attraction_parameters(number_of_ball_kinds: u8) -> Vec<Vec<f32>> {
+    let mut parameters: Vec<Vec<f32>>  = Vec::new();
+    for i in 0..number_of_ball_kinds {
+        parameters.push(Vec::new());
+        for j in 0..number_of_ball_kinds {
+            let mut rng = rand::thread_rng();
+            let randbool: bool = rng.gen();
+            if i != j {
+                parameters[i as usize].push(rng.gen::<f32>() * (if randbool {1.0} else {-1.0}));
+        }else{parameters[i as usize].push(rng.gen::<f32>() * (if randbool {1.0} else {-1.0})/4.0);}
+        }
+    }
+    parameters
+}
+
+
 #[derive(Component)]
 struct Position {
     x: f32,
@@ -40,11 +56,15 @@ fn setup(
 ) {
     commands.spawn(Camera2dBundle::default());
 
+
+
     let number_of_ball_kinds = 5;
 
     let number_of_balls_per_kind = 50;
 
     let window = window_query.get_single().unwrap();
+
+    commands.spawn((Ball_Parameters{attractions: random_attraction_parameters(number_of_ball_kinds.clone())},),);
 
     for i in 0..number_of_ball_kinds {
         // Distribute colors evenly across the rainbow.
@@ -72,10 +92,13 @@ fn setup(
 
 fn update_balls(
     mut query: Query<(&mut Position, &mut Speed, &BallKind, &mut Transform)>,
+    query2: Query<&Ball_Parameters>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     window_query: Query<&Window, With<Window>>,
 ) {
+    let window = window_query.get_single().unwrap();
+    let params = query2.get_single().unwrap();
     for (mut pos, vel, kind, transform) in &mut query {
         
     }}
