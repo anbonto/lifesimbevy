@@ -45,6 +45,7 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_systems(Startup, setup)
         .add_systems(Update, update_balls)
+        .insert_resource(Time::<Fixed>::from_hz(3.0))
         .run();
 }
 
@@ -59,9 +60,9 @@ fn setup(
 
 
 
-    let number_of_ball_kinds = 5;
+    let number_of_ball_kinds = 8;
 
-    let number_of_balls_per_kind = 50;
+    let number_of_balls_per_kind = 200;
 
     let window = window_query.get_single().unwrap();
 
@@ -105,6 +106,23 @@ fn update_balls(
     for (mut pos, vel, kind, mut transform) in &mut query {
         pos.x += vel.x;
         pos.y += vel.y;
+
+        if pos.x > 1.0 {
+            pos.x = pos.x-1.0;
+        }
+
+        if pos.y > 1.0 {
+            pos.y = pos.y-1.0;
+        }
+
+        if pos.x < 0.0 {
+            pos.x = pos.x+1.0;
+        }
+
+        if pos.y < 0.0 {
+            pos.y = pos.y+1.0;
+        }
+
         transform.translation.x = pos.x*window.width()-(window.width()/2.0);
         transform.translation.y = pos.y*window.height()-(window.height()/2.0);
         pos_copy.push((pos.clone(), kind.clone()));
@@ -135,18 +153,18 @@ fn update_balls(
             let distance = ((distancex).powi(2) + (distancey).powi(2)).sqrt();
             if distance > 0.04{}
             else if distance > 0.02{
-                accelerationx +=  parameters.attractions[kind.kind as usize][pos_copy[i].1.kind as usize]*0.00002 * (1.0-(distance*25.0)) * higherx* (1.0-distancex*25.0);
-                accelerationy +=  parameters.attractions[kind.kind as usize][pos_copy[i].1.kind as usize]*0.00002 * (1.0-(distance*25.0)) * highery * (1.0-distancey*25.0);
+                accelerationx +=  parameters.attractions[kind.kind as usize][pos_copy[i].1.kind as usize]*0.0001 * (1.0-(distance*25.0)) * higherx* (1.0-distancex*25.0);
+                accelerationy +=  parameters.attractions[kind.kind as usize][pos_copy[i].1.kind as usize]*0.0001 * (1.0-(distance*25.0)) * highery * (1.0-distancey*25.0);
             }
             
             else if distance > 0.004{
-                accelerationx +=  parameters.attractions[kind.kind as usize][pos_copy[i].1.kind as usize]*0.00002 * ((distance-0.008)*31.25) * higherx * (1.0-distancex*50.0);
-                accelerationy +=  parameters.attractions[kind.kind as usize][pos_copy[i].1.kind as usize]*0.00002 * ((distance-0.008)*31.25) * highery * (1.0-distancey*50.0);
+                accelerationx +=  parameters.attractions[kind.kind as usize][pos_copy[i].1.kind as usize]*0.0001 * ((distance-0.008)*31.25) * higherx * (1.0-distancex*50.0);
+                accelerationy +=  parameters.attractions[kind.kind as usize][pos_copy[i].1.kind as usize]*0.0001 * ((distance-0.008)*31.25) * highery * (1.0-distancey*50.0);
             }
 
             else{
-                accelerationx +=  -0.00002 * (1.0-(distance*250.0)) * 25.0 * higherx * (1.0-distancex*250.0);
-                accelerationy +=  -0.00002 * (1.0-(distance*250.0)) * 25.0 * highery * (1.0-distancey*250.0);
+                accelerationx +=  -0.0001 * (1.0-(distance*250.0)) * 25.0 * higherx * (1.0-distancex*250.0);
+                accelerationy +=  -0.0001 * (1.0-(distance*250.0)) * 25.0 * highery * (1.0-distancey*250.0);
             }
         }
         }
