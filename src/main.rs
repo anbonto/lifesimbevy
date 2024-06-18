@@ -44,6 +44,7 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_systems(Startup, setup)
+        .add_systems(Update, update_balls)
         .run();
 }
 
@@ -99,8 +100,10 @@ fn update_balls(
 ) {
     let window = window_query.get_single().unwrap();
     let params = query2.get_single().unwrap();
-    for (mut pos, vel, kind, transform) in &mut query {
-        
+    //query_copy = query.clone();
+    for (mut pos, vel, kind, mut transform) in &mut query {
+        transform.translation.x = pos.x*window.width()-(window.width()/2.0);
+        transform.translation.y = pos.y*window.height()-(window.height()/2.0);
     }}
 
 
