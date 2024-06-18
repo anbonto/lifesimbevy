@@ -27,7 +27,7 @@ fn random_attraction_parameters(number_of_ball_kinds: u8) -> Vec<Vec<f32>> {
 }
 
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 struct Position {
     x: f32,
     y: f32,
@@ -37,7 +37,7 @@ struct Speed {
     x: f32,
     y: f32,
 }
-#[derive(Component)]
+#[derive(Component, Clone)]
 struct BallKind{kind: u8}
 
 fn main() {
@@ -78,7 +78,7 @@ fn setup(
         let y:f32 = rang.gen::<f32>();
 
         commands.spawn((MaterialMesh2dBundle {
-            mesh: Mesh2dHandle(meshes.add(Circle { radius: 5.0 })),
+            mesh: Mesh2dHandle(meshes.add(Circle { radius: 3.0 })),
             material: materials.add(color),
             transform: Transform::from_xyz(
                 x*window.width()-(window.width()/2.0),
@@ -99,12 +99,66 @@ fn update_balls(
     window_query: Query<&Window, With<Window>>,
 ) {
     let window = window_query.get_single().unwrap();
-    let params = query2.get_single().unwrap();
-    //query_copy = query.clone();
+    let parameters = query2.get_single().unwrap();
+    let mut pos_copy : Vec<(Position, BallKind)> = Vec::new();
+
     for (mut pos, vel, kind, mut transform) in &mut query {
+        pos.x += vel.x;
+        pos.y += vel.y;
         transform.translation.x = pos.x*window.width()-(window.width()/2.0);
         transform.translation.y = pos.y*window.height()-(window.height()/2.0);
-    }}
+        pos_copy.push((pos.clone(), kind.clone()));
+    }
+
+    for (pos, mut vel, kind, _transform) in &mut query {
+        let mut accelerationx = 0.0;
+        let mut accelerationy = 0.0;
+        for i in 0..pos_copy.len() {
+            if !(pos_copy[i].0.x == pos.x && pos_copy[i].0.y == pos.y) {
+            let mut distancex = (pos_copy[i].0.x - pos.x).abs();
+            let mut distancey = (pos_copy[i].0.y - pos.y).abs();
+
+
+            let mut higherx = if pos_copy[i].0.x>pos.x {1.0} else {-1.0};
+            let mut highery = if pos_copy[i].0.y>pos.y {1.0} else {-1.0};
+
+            //edge conditions
+            if distancex > 0.5{
+                distancex = 1.0 - distancex;
+                higherx *= -1.0;
+            }
+
+            if distancey > 0.5{
+                distancey = 1.0 - distancey;
+                highery *= -1.0;
+            } 
+            let distance = ((distancex).powi(2) + (distancey).powi(2)).sqrt();
+            if distance > 0.04{}
+            else if distance > 0.02{
+                accelerationx +=  parameters.attractions[kind.kind as usize][pos_copy[i].1.kind as usize]*0.00002 * (1.0-(distance*25.0)) * higherx* (1.0-distancex*25.0);
+                accelerationy +=  parameters.attractions[kind.kind as usize][pos_copy[i].1.kind as usize]*0.00002 * (1.0-(distance*25.0)) * highery * (1.0-distancey*25.0);
+            }
+            
+            else if distance > 0.004{
+                accelerationx +=  parameters.attractions[kind.kind as usize][pos_copy[i].1.kind as usize]*0.00002 * ((distance-0.008)*31.25) * higherx * (1.0-distancex*50.0);
+                accelerationy +=  parameters.attractions[kind.kind as usize][pos_copy[i].1.kind as usize]*0.00002 * ((distance-0.008)*31.25) * highery * (1.0-distancey*50.0);
+            }
+
+            else{
+                accelerationx +=  -0.00002 * (1.0-(distance*250.0)) * 25.0 * higherx * (1.0-distancex*250.0);
+                accelerationy +=  -0.00002 * (1.0-(distance*250.0)) * 25.0 * highery * (1.0-distancey*250.0);
+            }
+        }
+        }
+
+        vel.x += accelerationx;
+        vel.y += accelerationy;
+        vel.x *= 0.95;
+        vel.y *= 0.95;
+
+
+    }
+}
 
 
 
